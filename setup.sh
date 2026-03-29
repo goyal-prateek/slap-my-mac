@@ -14,7 +14,7 @@ for arg in "$@"; do
       echo "Usage: $0 [--no-build] [--help]"
       echo "  Installs missing dependencies when possible, runs pnpm install, then pnpm tauri build."
       echo "  --no-build  Skip the Tauri release build (only toolchain + pnpm install)."
-      echo "  After a successful build, opens the DMG via bundle_dms.sh, removes src-tauri/target, then launches the app from Applications."
+      echo "  After a successful build, removes src-tauri/target and runs open -a \"Slap My Mac\" (app must already be in Applications)."
       exit 0
       ;;
     *)
