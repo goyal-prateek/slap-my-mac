@@ -116,7 +116,9 @@ jobs:
           fi
           DEST="s3://${{ vars.AWS_S3_BUCKET }}/slap-my-mac/versions/${APP_VERSION}/$(basename "$DMG")"
           echo "Uploading $DMG -> $DEST"
-          aws s3 cp "$DMG" "$DEST"
+          aws s3 cp "$DMG" "$DEST" \
+            --content-type "application/x-apple-diskimage" \
+            --content-disposition "attachment; filename=\"$(basename "$DMG")\""
 
       - name: Invalidate CloudFront cache
         run: |

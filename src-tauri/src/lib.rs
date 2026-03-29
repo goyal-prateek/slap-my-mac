@@ -12,6 +12,8 @@ use state::{
 };
 use serde::Serialize;
 use tauri_plugin_autostart::ManagerExt;
+#[cfg(target_os = "macos")]
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 use std::sync::Arc;
 use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -66,6 +68,34 @@ fn reset_counter(
   state.reset_counter()?;
   update_tray_tooltip(&app, &state);
   Ok(state.dto())
+}
+
+/// True when the app is running from a mounted disk image (or any non-Applications path on /Volumes/).
+/// In that case the process keeps the DMG busy and Finder cannot eject until the user quits from the menu bar.
+#[cfg(target_os = "macos")]
+fn running_from_install_disk() -> bool {
+  let Ok(exe) = std::env::current_exe() else {
+    return false;
+  };
+  let p = exe.to_string_lossy();
+  p.starts_with("/Volumes/") && !p.contains("/Applications/")
+}
+
+#[cfg(target_os = "macos")]
+fn warn_running_from_dmg(app: &tauri::AppHandle) {
+  if !running_from_install_disk() {
+    return;
+  }
+  app
+    .dialog()
+    .message(
+      "You opened Slap My Mac from the disk image. While it is running, macOS cannot eject the DMG.\n\n\
+       Install it: drag “Slap My Mac” onto the Applications folder in this window, then eject the disk image and open the app from Applications or Launchpad.\n\n\
+       Or, to only try it from the disk image: when you are done, choose Quit from the menu bar (hand-on-Mac icon) before ejecting.",
+    )
+    .title("Install Slap My Mac")
+    .kind(MessageDialogKind::Info)
+    .blocking_show();
 }
 
 #[derive(Serialize)]
@@ -180,6 +210,9 @@ pub fn run() {
       update_tray_tooltip(&handle, &state);
       crate::audio::try_init();
       sensor::spawn(handle.clone(), state);
+
+      #[cfg(target_os = "macos")]
+      warn_running_from_dmg(app.handle());
 
       if let Some(w) = app.get_webview_window("main") {
         let win = w.clone();
