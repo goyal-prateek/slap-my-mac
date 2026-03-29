@@ -1,0 +1,299 @@
+:root {
+  --bg: #121218;
+  --bg-elevated: #1a1a22;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #f2f0eb;
+  --muted: #9898a8;
+  --accent: #ff5c5c;
+  --accent-dim: rgba(255, 92, 92, 0.2);
+  --ok: #7dffb3;
+  --warn: #ffc14d;
+  --error: #ff7a7a;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 120% 80% at 20% -20%, rgba(255, 92, 92, 0.18), transparent),
+    radial-gradient(ellipse 80% 60% at 100% 0%, rgba(120, 140, 255, 0.12), transparent),
+    var(--bg);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.shell {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 28px 24px 32px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hero {
+  text-align: left;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+h1 {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 2.35rem;
+  font-weight: 400;
+  line-height: 1.05;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+  align-items: end;
+}
+
+.stats > div:first-child {
+  grid-column: 1;
+}
+
+.stats > div:nth-child(2) {
+  grid-column: 2;
+  text-align: right;
+}
+
+.strength {
+  grid-column: 1 / -1;
+  font-size: 0.85rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-ok {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ok);
+}
+
+.stat-warn {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--warn);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.field-hint {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.field input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  height: 6px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+}
+
+.toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #1a0a0a;
+}
+
+.btn.primary:hover {
+  filter: brightness(1.08);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--text);
+}
+
+.btn.ghost:hover {
+  background: var(--accent-dim);
+  border-color: rgba(255, 92, 92, 0.35);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.45;
+  padding: 10px 12px;
+  border-left: 3px solid var(--warn);
+  background: rgba(255, 193, 77, 0.06);
+  border-radius: 0 8px 8px 0;
+}
+
+.error {
+  margin: 0;
+  color: var(--error);
+  font-size: 0.88rem;
+}
+
+.muted {
+  color: var(--muted);
+  text-align: center;
+  margin-top: 40px;
+}
+
+.foot {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.foot p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.sound-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sound-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.login-items-hint {
+  margin-top: 0.35rem;
+}
+
+.sound-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sound-status {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.sound-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn-compact {
+  padding: 8px 12px;
+  font-size: 0.82rem;
+}
+
+.sound-notice {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ok);
+  line-height: 1.4;
+}
