@@ -71,7 +71,7 @@ jobs:
           echo "Using version: $VERSION"
 
       - name: Build Tauri (DMG)
-        run: pnpm tauri build -- --bundles dmg
+        run: pnpm tauri build
 
       - name: Summarize build output
         shell: bash
