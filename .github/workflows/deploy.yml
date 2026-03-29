@@ -1,5 +1,6 @@
 name: Build and Deploy to S3 + CloudFront
 
+# Deploy job is gated with `if` below until Apple Developer Program + signing/notarization exist.
 on:
   push:
     branches:
@@ -18,6 +19,8 @@ on:
 
 jobs:
   build_and_deploy:
+    # Gate: workflow `env` cannot be used here. Flip to true (or e.g. vars.TAURI_CI_DEPLOY_ENABLED == 'true') after Apple developer account + secrets.
+    if: ${{ false }}
     name: Build and Deploy
     runs-on: macos-latest
     permissions:
@@ -70,11 +73,62 @@ jobs:
           mv src-tauri/tauri.conf.json.tmp src-tauri/tauri.conf.json
           echo "Using version: $VERSION"
 
+      # Browser downloads are quarantined; without Developer ID signing + notarization,
+      # Gatekeeper reports the app as "damaged". See repository secrets listed below.
+      - name: Import Apple code signing certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${APPLE_CERTIFICATE:-}" ] || [ -z "${APPLE_CERTIFICATE_PASSWORD:-}" ]; then
+            echo "::error::Set repository secrets APPLE_CERTIFICATE (base64 .p12) and APPLE_CERTIFICATE_PASSWORD, plus APPLE_ID, APPLE_PASSWORD (app-specific password), and APPLE_TEAM_ID for notarization. See https://v2.tauri.app/distribute/sign/macos/"
+            exit 1
+          fi
+          CERT_PATH="$RUNNER_TEMP/certificate.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 32)"
+          echo "$APPLE_CERTIFICATE" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | awk -F'"' '/Developer ID Application/{print $2; exit}')"
+          if [ -z "$IDENTITY" ]; then
+            echo "::error::No \"Developer ID Application\" identity in the imported .p12. Create/export a Developer ID Application certificate (not Apple Development) from developer.apple.com."
+            exit 1
+          fi
+          echo "APPLE_SIGNING_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+
+      - name: Verify notarization secrets
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          missing=0
+          [ -z "${APPLE_ID:-}" ] && { echo "::error::APPLE_ID secret is not set"; missing=1; }
+          [ -z "${APPLE_PASSWORD:-}" ] && { echo "::error::APPLE_PASSWORD secret is not set (use an app-specific password, not your Apple ID login)"; missing=1; }
+          [ -z "${APPLE_TEAM_ID:-}" ] && { echo "::error::APPLE_TEAM_ID secret is not set (10-character Team ID from developer.apple.com)"; missing=1; }
+          [ "$missing" -eq 0 ] || exit 1
+
+      # APPLE_SIGNING_IDENTITY comes from GITHUB_ENV (import step); do not set it via ${{ env.* }} here
+      # or GitHub Actions can overwrite it with an empty value.
       - name: Build Tauri (DMG)
         env:
           # CI=true makes Tauri pass --skip-jenkins, which skips Finder layout and
           # leaves .VolumeIcon.icns visible; allow full DMG styling on macOS runners.
           TAURI_BUNDLER_DMG_IGNORE_CI: "true"
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: pnpm tauri build
 
       - name: Summarize build output

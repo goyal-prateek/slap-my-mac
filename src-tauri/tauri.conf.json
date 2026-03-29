@@ -31,6 +31,8 @@
     "active": true,
     "targets": ["dmg", "app"],
     "macOS": {
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.plist",
       "dmg": {
         "background": "images/dmg-background.png",
         "windowSize": {
