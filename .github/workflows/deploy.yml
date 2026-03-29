@@ -71,6 +71,10 @@ jobs:
           echo "Using version: $VERSION"
 
       - name: Build Tauri (DMG)
+        env:
+          # CI=true makes Tauri pass --skip-jenkins, which skips Finder layout and
+          # leaves .VolumeIcon.icns visible; allow full DMG styling on macOS runners.
+          TAURI_BUNDLER_DMG_IGNORE_CI: "true"
         run: pnpm tauri build
 
       - name: Summarize build output
